@@ -1,0 +1,67 @@
+version: '3.1'
+services:
+#   db:
+#     container_name: easytrack-db
+#     image: mysql:5.6.23
+#     environment:
+#       MYSQL_ROOT_PASSWORD: 123456
+#       MYSQL_USER: easytrack
+#       MYSQL_PASSWORD: easytrack
+#       MYSQL_DATABASE: easytrack
+#     ports:
+#     - 3306:3306
+#     tty: true
+#     restart: always
+  db:
+    container_name: easytrack-db
+    image: postgres:alpine
+    environment:
+      POSTGRES_DB: easytrack
+      POSTGRES_USER: easytrack
+      POSTGRES_PASSWORD: easytrack
+    ports:
+    - 5432:5432
+    tty: true
+    restart: on-failure
+  redis:
+    container_name: easytrack-redis
+    image: redis:alpine
+    ports:
+    - 6379:6379
+    tty: true
+    restart: on-failure
+  web:
+    container_name: easytrack-back
+    build:
+      context: ./docker/back/
+    image: easytrack-back:latest
+    ports:
+    - 80:80
+    volumes:
+    - .:/var/www
+    environment:
+    - DB_HOST=easytrack-db
+    extra_hosts:
+    - "localhost:127.0.0.1"
+    entrypoint: [ "/bin/sh" , "./docker/back/entrypoint.sh" ]
+    command: php artisan serve --host 0.0.0.0 --port 80
+    links:
+      - db:db
+      - redis:redis
+    depends_on:
+      - db
+    tty: true
+    restart: on-failure
+  front:
+    container_name: easytrack-front
+    build:
+      context: ./docker/front/
+    image: easytrack-front:latest
+    volumes:
+    - .:/var/www
+    entrypoint: [ "/bin/sh" , "./docker/front/entrypoint.sh" ]
+    command: yarn watch
+    depends_on:
+    - web
+    tty: false
+    restart: on-failure
