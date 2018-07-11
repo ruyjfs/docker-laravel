@@ -24,5 +24,5 @@ if ! [ -d "./vendor" ]; then
     php artisan storage:link
     # php artisan api:generate --routePrefix="api/*"
 fi
-echo "[ ****************** ] Back - Ending Endpoint of Application "
+echo "[ ****************** ] Back - Ending Endpoint of Application"
 exec "$@"
